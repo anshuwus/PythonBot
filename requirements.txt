@@ -1,6 +1,6 @@
 telethon
 boto3
 pyshorteners
-urllib.parse
+urllib.parse==3.8.16
 requests
 

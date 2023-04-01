@@ -1,6 +1,4 @@
 telethon
-boto3
 pyshorteners
-urllib.parse==3.5.9
 requests
 

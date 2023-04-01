@@ -1,8 +1,7 @@
 from telethon import TelegramClient, events
 import requests
-from urllib.parse import urlparse, parse_qs
 import pyshorteners
-import boto3
+
 
 # replace <YOUR_API_ID> and <YOUR_API_HASH> with your actual API ID and hash
 api_id = 27989413
@@ -43,7 +42,7 @@ if not client.is_user_authorized():
 s = pyshorteners.Shortener()
 #(chats=source_group_ids)
 # define a function to handle incoming messages in the source group
-@client.on(events.NewMessage(chats=source_group_ids))
+@client.on(events.NewMessage)
 async def handle_message(event):
     try:
         # check if the source chat ID matches the expected 
@@ -55,30 +54,30 @@ async def handle_message(event):
         # check if the message contains a short URL
         if 'http' in message_text:
             # retrieve the short URL from the message
-            short_url = message_text.split('https://')[1].split()[0]
-            short_url = "https://"+short_url
+             short_url = message_text.split('https://')[1].split()[0]
+             short_url = "https://"+short_url
             # decode the short URL
-            decoded_url = requests.get(short_url).url
+             decoded_url = requests.get(short_url).url
             # check if the URL is from amazon.in
-            if 'amazon.in' in decoded_url:
-                
+             if 'amazon.in' in decoded_url:
+             # Extract the existing affiliate tag from the URL
+               start_index = decoded_url.find('tag=') + len('tag=')
+               end_index = decoded_url.find('&', start_index)
+             if  end_index == -1:
+                 end_index = len(decoded_url)
+                 existing_affiliate_tag = decoded_url[start_index:end_index]
+
+               # Replace the existing affiliate tag with the new tag
+             new_url = decoded_url.replace(existing_affiliate_tag, affiliate_tag)
+             short_url = s.tinyurl.short(new_url)
+             await client.send_message(destination_group_ids, short_url)
                 # replace the existing tag with the user's tag
-                parsed_url = urlparse(decoded_url)
-                query = parse_qs(parsed_url.query)
-                query['tag'] = [affiliate_tag]
-                new_url = parsed_url.scheme + '://' + parsed_url.netloc + parsed_url.path + '?' + '&'.join([f'{k}={v[0]}' for k, v in query.items()])
-            else: 
-                # add the affiliate tag to the decoded URL
-                parsed_url = urlparse(decoded_url)
-                query = parse_qs(parsed_url.query)
-                query['tag'] = [affiliate_tag]
-                new_url = parsed_url.scheme + '://' + parsed_url.netloc + parsed_url.path + '?' + '&'.join([f'{k}={v[0]}' for k, v in query.items()])
-            # shorten the new URL and send it to the target group
-            short_url = s.tinyurl.short(new_url)
-            await client.send_message(destination_group_ids, short_url)
-        else:
-            # send the message to the target group without modification
-            await client.send_message(destination_group_ids, message_text)
+               # parsed_url = urlparse(decoded_url)
+               # query = parse_qs(parsed_url.query)
+                #query['tag'] = [affiliate_tag]
+                #new_url = parsed_url.scheme + '://' + parsed_url.netloc + parsed_url.path + '?' + '&'.join([f'{k}={v[0]}' for k, v in query.items()])
+      
+       
     except Exception as e:
         print(f"Exception occurred: {e}")
 

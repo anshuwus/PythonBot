@@ -34,9 +34,7 @@ client = TelegramClient('send_message_bot', api_id, api_hash)
 client.connect()
 
 # log in to your account with the phone number and code
-if not client.is_user_authorized():
-    client.send_code_request(phone_number)
-    client.sign_in(phone_number, code)
+
 
 # create a PyShorteners object for URL shortening
 s = pyshorteners.Shortener()
